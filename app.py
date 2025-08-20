@@ -9,24 +9,24 @@ app = Flask(__name__)
 # Creation tables in db
 models.Base.metadata.create_all(bind=engine)
 
-@app.route('/api/sessions', methods=['POST'])
-def create_session_endpoint():
-    session_id = request.json.get('sessionId')
+@app.route('/api/sessions/<session_id>/create', methods=['POST'])
+def create_session_endpoint(session_id):
+    print("! Create Session !")
     with SessionLocal() as db:
         session = crud.create_session(db, session_id)
     return jsonify(session_id=session.session_id, active=session.active), 201
 
-@app.route('/api/sessions/<session_id>/calculations', methods=['GET'])
+@app.route('/api/sessions/<session_id>/get_calculations', methods=['GET'])
 def get_calculations_endpoint(session_id):
     with SessionLocal() as db:
         calculations = crud.get_calculations(db, session_id)
     return jsonify([calculation.__dict__ for calculation in calculations])
 
-@app.route('/api/calculations', methods=['POST'])
-def save_calculation_endpoint():
+@app.route('/api/sessions/<session_id>/save_calculations', methods=['POST'])
+def save_calculation_endpoint(session_id):
     data = request.json
     with SessionLocal() as db:
-        calculation = crud.save_calculation(db, data['sessionId'], data['operation'], data['operand1'], data['operand2'], data['result'])
+        calculation = crud.save_calculation(db, session_id, data['operation'], data['operand1'], data['operand2'], data['result'])
     return jsonify(calculation.__dict__), 201
 
 @app.route('/api/sessions/<session_id>/close', methods=['POST'])
